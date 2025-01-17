@@ -1,0 +1,175 @@
+/*
+ BOJ-2573(빙산)[C++]
+ 주어진 2차원 배열에는 빙산의 각 높이가 저장되어 있다.
+ 빈 칸은 모두 0으로 바닷물에 해당한다.
+ 빙산과 바닷물(상하좌우)이 맞닿는 면의 개수만큼 년마다 감소하는 양이 1씩 증가한다.
+ 주어진 2차원 배열의 빙산이 두 덩어리 이상으로 분리되는 최초의 시간(년)을 구하여라.
+ -> point : 각 탐색마다 덩어리 생성 유무 파악
+ -> 삽입된 각 빙산들에 대해 -연산 진행 이후 if(빙산의 높이 > 0 && 맞닿는 4변이 모두 바다인 경우)
+ 
+------------------------------------------------------------------------------------------------------
+ -> * 년 수를 어떻게 카운트 할 것인가.-> 큐의 최초 front부분을 count 부분을
+ -> 1. 직전 큐에서 빼낸 좌표의 연산이 현재 좌표의 연산에 영향을 끼치면 안된다는 것을 간과함. 0->1년에 시간 동안 모든 빙산이 바닷물에 의해 같이 녹는 것. 현재까지는 {1,1}이 바닷물이 되면 이것이 {1,2}에도 영향을 끼침. -> MAP값을 복사하는 temp 형식의 2차원 배열이 필요함.
+ -> 2. 아래의 케이스에서 2년째일 때 빙산이 두 덩이가 된다. 기존의 나는 각 빙산의 4분면이 모두 0일 때만을 고려하고 코드를 구성하였고, 아래의 케이스와 같은 경우에서 두 좌표의 빙산이 하나의 짝이 되고 큰 빙산 두 개로 나뉘었을 때에 대한 처리를 하지 못하였다. -> DFS를 진행하며 동시에 BFS를 진행하며 빙산을 녹인다. DFS가 종료되었을 때 큐에 담김 각 빙산에 대해 방문 여부를 확인하고 이때 미방문 처리된 빙산이 남아있다면 방문하지 않은 것이기에 현재까지의 연차를 출력하고, 프로그램을 종료하는 방식으로 해결을 시도하였다.
+ 4 5
+ 0 0 0 0 0
+ 0 10 3 10 0
+ 0 10 0 10 0
+ 0 0 0 0 0
+ 
+ ---------------------------------------------------------------------------------------------------
+ 1. 현재 좌표에서 바다와 인접한 칸 수 각각 모두 확인(BFS)
+ 2. 각 빙산의 높이 - 바다와 인접한 칸 수
+ 3. 덩어리의 개수 파악하기(DFS)
+ 4. 1~2를 진행할 때 사용한 vis(방문 여부)를 통해 3의 과정에서의 방문 여부와 비교하여 하나라도 일치하지 않은 경우 빙산의 분리로 판단하고 프로그램 출력 후 종료
+*/
+
+#include <iostream>
+#include <queue>
+#include <vector>
+#include <stack>
+
+using namespace std;
+
+int n, m;   //이차원 배열의 행과 열의 개수
+int COUNT = 0;
+
+int MAP[305][305];  //빙산의 높이를 기록할 이차원 배열
+int temp[305][305];
+bool vis[305][305] = {};
+
+int dx[4] = {1, 0, -1, 0};
+int dy[4] = {0, 1, 0, -1};
+
+queue<pair<int, int>> q;    //0(바다)를 제외한 빙산의 높이가 기록된 자표를 저장하기 위한 큐
+queue<pair<int, int>> temp_q;
+
+vector<pair<int, int>> temp_v;
+
+int check()
+{
+    int cnt = 0;
+    pair<int, int> cur = temp_q.front();
+    temp_q.pop();
+    
+    for (int dir = 0; dir < 4; dir++)
+    {
+        int nx = dx[dir] + cur.first;
+        int ny = dy[dir] + cur.second;
+        
+        if (nx < 0 || nx >= n || ny < 0 || ny >= m) continue;
+        if (MAP[nx][ny] == 0)   cnt++;
+    }
+    return cnt;
+}
+
+bool DFS()
+{
+    stack<pair<int, int>> s;
+    queue<pair<int,int>> tq = q;
+    
+    if (tq.empty())
+        return false;
+    COUNT++;
+    
+    s.push(tq.front());
+    
+    bool vis_dfs[305][305] = {};
+    vis_dfs[tq.front().first][tq.front().second] = true;
+    tq.pop();
+    
+    while(!s.empty())
+    {
+        
+        pair<int, int> cur = s.top();
+        s.pop();
+        cout << "----------------------------------------\ncur = {" << cur.first << ", " << cur.second << "}\n";
+        
+        for (int dir = 0; dir < 4; dir++)
+        {
+            int nx = dx[dir] + cur.first;
+            int ny = dy[dir] + cur.second;
+            
+            if (nx < 0 || nx >= n || ny < 0 || ny >= m) continue;
+            if (temp[nx][ny] == 0)                      continue;
+            if (vis_dfs[nx][ny])                        continue;
+            
+            vis_dfs[nx][ny] = true;
+            cout << "vis_dfs[nx][ny] = {" << nx << ", " << ny << "}\n";
+            s.push({nx, ny});
+        }
+    }
+    while(!temp_v.empty())
+    {
+        pair<int, int> cur = temp_v.back();
+        temp_v.pop_back();
+        cout <<"-----------------------------------\ntemp[" << cur.first << "][" << cur.second << "] = " << temp[cur.first][cur.second] << '\n';
+        cout <<"vis[cur.first][cur.second] = " << vis[cur.first][cur.second] << '\n';
+        cout <<"vis_dfs[cur.first][cur.second] = " << vis_dfs[cur.first][cur.second] << '\n';
+        
+        if (vis[cur.first][cur.second] != vis_dfs[cur.first][cur.second] && temp[cur.first][cur.second] != 0)
+            //방문 여부가 일치하지 않으며 0이 아닌 경우에만 덩어리가 나눠진 것.
+            return false;
+        
+    }
+    
+    return true;
+}
+
+int main()
+{
+    cin >> n >> m;
+    
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+        {
+            cin >> MAP[i][j];
+            
+            if (MAP[i][j] != 0)
+                q.push({i, j});
+        }
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            temp[i][j] = MAP[i][j];
+    
+    while(!q.empty())
+    {
+        
+        while(!q.empty())
+        {
+            temp_v.push_back(q.front());
+            temp_q.push(q.front());
+            q.pop();
+        }
+        
+        
+        while(!temp_q.empty())
+        {
+            pair<int, int> cur = temp_q.front();
+            
+            int t = check();
+            if (MAP[cur.first][cur.second] < t)
+                temp[cur.first][cur.second] = 0;
+            else
+                temp[cur.first][cur.second] = MAP[cur.first][cur.second] - t;
+            vis[cur.first][cur.second] = true;
+            
+            
+            if (temp[cur.first][cur.second] > 0)    q.push(cur);
+        }
+        
+        for (auto tmp : temp_v)
+            MAP[tmp.first][tmp.second] = temp[tmp.first][tmp.second];
+        
+        
+        if (!DFS())
+        {
+            cout << COUNT << '\n';
+            return 0;
+        }
+    }
+    cout << COUNT << '\n';
+    return 0;
+}
+    
+
