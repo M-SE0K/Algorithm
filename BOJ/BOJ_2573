@@ -22,154 +22,130 @@
  2. 각 빙산의 높이 - 바다와 인접한 칸 수
  3. 덩어리의 개수 파악하기(DFS)
  4. 1~2를 진행할 때 사용한 vis(방문 여부)를 통해 3의 과정에서의 방문 여부와 비교하여 하나라도 일치하지 않은 경우 빙산의 분리로 판단하고 프로그램 출력 후 종료
+ 
+ ---------------------------------------------------------------------------------------------
+ 1. 2차원 배열을 순회하며 (방문하지 않았고 && 빙산의 높이 > 0) 조건에 대해 각 빙산의 주변 바닷물을 복사한 2차원 배열에 기록함.
+ 2. 빙산이 한 덩어리라면 1의 실행횟수가 1일 것이고 그게 아니라면 0 or 2 이상일 것.
+ -> 0이라면 덩어리 존재 X, 2 이상인 경우 덩어리로 분할 된 것.
+ 3. 빙산 녹이기
 */
 
 #include <iostream>
-#include <queue>
-#include <vector>
 #include <stack>
+#include <queue>
 
 using namespace std;
-
-int n, m;   //이차원 배열의 행과 열의 개수
-int COUNT = 0;
-
-int MAP[305][305];  //빙산의 높이를 기록할 이차원 배열
-int temp[305][305];
-bool vis[305][305] = {};
 
 int dx[4] = {1, 0, -1, 0};
 int dy[4] = {0, 1, 0, -1};
 
-queue<pair<int, int>> q;    //0(바다)를 제외한 빙산의 높이가 기록된 자표를 저장하기 위한 큐
-queue<pair<int, int>> temp_q;
+int MAP[305][305];
+int temp_MAP[305][305];
+bool vis[305][305];
 
-vector<pair<int, int>> temp_v;
 
-int check()
+void reset(int n, int m, auto arr[][305])
 {
-    int cnt = 0;
-    pair<int, int> cur = temp_q.front();
-    temp_q.pop();
-    
-    for (int dir = 0; dir < 4; dir++)
-    {
-        int nx = dx[dir] + cur.first;
-        int ny = dy[dir] + cur.second;
-        
-        if (nx < 0 || nx >= n || ny < 0 || ny >= m) continue;
-        if (MAP[nx][ny] == 0)   cnt++;
-    }
-    return cnt;
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            arr[i][j] = 0;
 }
-
-bool DFS()
+void melt_Ice(int n, int m)
 {
-    stack<pair<int, int>> s;
-    queue<pair<int,int>> tq = q;
-    
-    if (tq.empty())
-        return false;
-    COUNT++;
-    
-    s.push(tq.front());
-    
-    bool vis_dfs[305][305] = {};
-    vis_dfs[tq.front().first][tq.front().second] = true;
-    tq.pop();
-    
-    while(!s.empty())
+    reset(n, m, temp_MAP);
+    for (int i = 0; i < n; i++)
     {
-        
-        pair<int, int> cur = s.top();
-        s.pop();
-        cout << "----------------------------------------\ncur = {" << cur.first << ", " << cur.second << "}\n";
-        
-        for (int dir = 0; dir < 4; dir++)
+        for (int j = 0; j < m; j++)
         {
-            int nx = dx[dir] + cur.first;
-            int ny = dy[dir] + cur.second;
+            if (MAP[i][j] == 0) continue;
+            int water = 0;
             
-            if (nx < 0 || nx >= n || ny < 0 || ny >= m) continue;
-            if (temp[nx][ny] == 0)                      continue;
-            if (vis_dfs[nx][ny])                        continue;
-            
-            vis_dfs[nx][ny] = true;
-            cout << "vis_dfs[nx][ny] = {" << nx << ", " << ny << "}\n";
-            s.push({nx, ny});
+            for (int dir = 0; dir < 4; dir++)
+            {
+                int nx = i + dx[dir];
+                int ny = j + dy[dir];
+                
+                if (nx < 0 || nx >= n || ny < 0 || ny >= m) continue;
+                if (MAP[nx][ny] == 0)   water++;
+            }
+            if ((MAP[i][j] - water) > 0)    temp_MAP[i][j] = MAP[i][j] - water;
         }
     }
-    while(!temp_v.empty())
-    {
-        pair<int, int> cur = temp_v.back();
-        temp_v.pop_back();
-        cout <<"-----------------------------------\ntemp[" << cur.first << "][" << cur.second << "] = " << temp[cur.first][cur.second] << '\n';
-        cout <<"vis[cur.first][cur.second] = " << vis[cur.first][cur.second] << '\n';
-        cout <<"vis_dfs[cur.first][cur.second] = " << vis_dfs[cur.first][cur.second] << '\n';
-        
-        if (vis[cur.first][cur.second] != vis_dfs[cur.first][cur.second] && temp[cur.first][cur.second] != 0)
-            //방문 여부가 일치하지 않으며 0이 아닌 경우에만 덩어리가 나눠진 것.
-            return false;
-        
-    }
-    
-    return true;
-}
-
-int main()
-{
-    cin >> n >> m;
     
     for (int i = 0; i < n; i++)
         for (int j = 0; j < m; j++)
-        {
-            cin >> MAP[i][j];
-            
-            if (MAP[i][j] != 0)
-                q.push({i, j});
-        }
-    for (int i = 0; i < n; i++)
-        for (int j = 0; j < n; j++)
-            temp[i][j] = MAP[i][j];
+            MAP[i][j] = temp_MAP[i][j];
+    
+}
+void BFS(int x, int y, int n, int m)
+{
+    int water = 0;
+    queue<pair<int, int>> q;
+    q.push({x, y});
     
     while(!q.empty())
     {
+        pair<int, int> cur = q.front();
+        q.pop();
         
-        while(!q.empty())
+        for (int dir = 0; dir < 4; dir++)
         {
-            temp_v.push_back(q.front());
-            temp_q.push(q.front());
-            q.pop();
-        }
-        
-        
-        while(!temp_q.empty())
-        {
-            pair<int, int> cur = temp_q.front();
+            int nx = cur.first + dx[dir];
+            int ny = cur.second + dy[dir];
             
-            int t = check();
-            if (MAP[cur.first][cur.second] < t)
-                temp[cur.first][cur.second] = 0;
-            else
-                temp[cur.first][cur.second] = MAP[cur.first][cur.second] - t;
-            vis[cur.first][cur.second] = true;
+            if (nx < 0 || nx >= n || ny < 0 || ny >= m) continue;
+            if (vis[nx][ny])                            continue;
+            if (MAP[nx][ny] <= 0)                       continue;
             
+            q.push({nx, ny});
+            vis[nx][ny] = true;
             
-            if (temp[cur.first][cur.second] > 0)    q.push(cur);
-        }
-        
-        for (auto tmp : temp_v)
-            MAP[tmp.first][tmp.second] = temp[tmp.first][tmp.second];
-        
-        
-        if (!DFS())
-        {
-            cout << COUNT << '\n';
-            return 0;
         }
     }
-    cout << COUNT << '\n';
-    return 0;
-}
     
-
+    
+}
+int main()
+{
+    int n, m;
+    cin >> n >> m;
+    
+    
+    //입력 부분
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < m; j++)
+            cin >> MAP[i][j];
+    
+    int year = 0;
+    while(true)
+    {
+        reset(n, m, vis);
+        int cnt = 0;
+        
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < m; j++)
+            {
+                if (!vis[i][j] && MAP[i][j] > 0)
+                {
+                    BFS(i, j, n, m);
+                    cnt++;
+                }
+            }
+        if (cnt == 0)
+        {
+            cout << 0 << '\n';
+            return 0;
+        }
+        else if (cnt >= 2)
+        {
+            cout << year << '\n';
+            return 0;
+        }
+        else
+        {
+            year++;
+            melt_Ice(n, m);
+            reset(n, m, vis);
+        }
+    }
+}
