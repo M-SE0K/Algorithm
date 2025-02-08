@@ -37,6 +37,5 @@ int main()
     }
     
     cout << maximum;
-    
     return 0;
 }
