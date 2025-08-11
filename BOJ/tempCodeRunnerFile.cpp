@@ -1,2 +1,1 @@
-
-            cout << apt[k][n];
+true
