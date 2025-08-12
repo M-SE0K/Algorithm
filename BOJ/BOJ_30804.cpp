@@ -1,97 +1,3 @@
-// #include <iostream>
-// #include <deque>
-
-// using namespace std;
-
-// int fruit[200005] = {};
-// int fruit_cnt[10] = {};
-
-// int point(int start, int end){
-//     int cnt = 0;
-//     for (int i = start; i < end; i++)
-//         if ( 0 < fruit_cnt[fruit[i]] ) cnt++;
-        
-//     return cnt;
-// }
-
-// int main(){
-//     ios::sync_with_stdio(false);
-//     cin.tie(NULL);
-//     cout.tie(NULL);
-
-//     int n;
-//     cin >> n;
-
-//     for (int i = 0; i < n; i++){
-//         cin >> fruit[i];
-//     }
-
-//     int start = 0, end = n;
-//     int answer = 0, cnt = 0;
-//     int left = 0;
-//     for (int right = 0; right < n; right++){
-//         if(fruit_cnt[right] == 0)   cnt++;
-//         fruit_cnt[fruit[right]]++;
-
-//         while(cnt > 2){
-//             fruit_cnt[fruit[left]]--;
-//             if (fruit_cnt[fruit[left]] == 0)    cnt--;
-//             left++;
-//         }
-//         answer = max(answer, right-left+1);
-//     }
-    
-//     cout << answer << '\n';
-// }
-
-// #include <iostream>
-// #include <deque>
-
-// using namespace std;
-
-// int main(){
-//     ios::sync_with_stdio(false);
-//     cin.tie(NULL);
-//     cout.tie(NULL);
-
-//     int n;
-//     cin >> n;
-
-//     int fruit[10] = {};
-//     deque<int> dq;
-//     for (int i = 0; i < n; i++){
-//         int num;
-//         cin >> num;
-
-//         dq.push_back(num);
-//         fruit[num]++;
-//     }
-
-//     while(!dq.empty()){
-//         int front_fruit = dq.front();
-//         int back_fruit = dq.back();
-
-//         int cnt = 0;
-//         for (int i = 0; i < 10; i++)
-//             if ( 0 < fruit[i] ) cnt++;
-        
-//         if (cnt <= 2)   break;
-    
-
-//         if (fruit[front_fruit] < fruit[back_fruit]){
-//             dq.pop_front();
-//             fruit[front_fruit]--;
-//         }
-//         else{
-//             dq.pop_back();
-//             fruit[back_fruit]--;
-//         }
-//     }
-
-//     cout << dq.size() << '\n';
-// }
-
-
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -122,6 +28,7 @@ int main() {
     for (int right = 0; right < n; right++) {
         // 1. right 포인터가 가리키는 과일을 윈도우에 추가
         // 만약 이 과일이 윈도우에 처음 들어오는 종류라면 kind_cnt를 1 증가
+
         if (fruit_cnt[fruits[right]] == 0) {
             kind_cnt++;
         }
