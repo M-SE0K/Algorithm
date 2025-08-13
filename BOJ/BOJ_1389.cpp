@@ -24,6 +24,7 @@ int main(){
     
     int dist[105] = {};
     int answer[105] = {};
+
     for (int i = 1; i <= n; i++){
         queue<int> q;
         q.push(i);
@@ -40,9 +41,9 @@ int main(){
                 q.push(next);
                 dist[next] = dist[cur] + 1;
                 // cout << "dist[" << next << "]: " << dist[next] << '\n';
-
             }
         }
+
         for (int j = 1; j <= n; j++)
             if (dist[j] != 0 && i != j) 
                 answer[i] += dist[j];
