@@ -1,1 +1,2 @@
-)
+
+                nCur = board[nCur];
