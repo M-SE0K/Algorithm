@@ -1,2 +1,1 @@
-
-                nCur = board[nCur];
+cout << vec[i].second.second.second << '\n';
